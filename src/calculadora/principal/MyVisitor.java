@@ -10,7 +10,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
     Map<String, Object> mem = new HashMap<String, Object>();
     String op;
     public static List<String> translation = new ArrayList<String>();
-
     @Override
     public Object visitImpresion(CalculadoraParser.ImpresionContext ctx) {
 
@@ -30,14 +29,12 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
 
         return null;
     }
-
     @Override
     public Object visitNumero(CalculadoraParser.NumeroContext ctx) {
 
         //System.out.println(ctx.NUM().getText());
         return Double.parseDouble(ctx.NUM().getText());
     }
-
     @Override
     public Object visitPotencia(CalculadoraParser.PotenciaContext ctx) {
 
@@ -46,7 +43,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
 
         return Math.pow(a, b);
     }
-
     @Override
     public Object visitMultiplicacion_o_division(CalculadoraParser.Multiplicacion_o_divisionContext ctx) {
 
@@ -59,7 +55,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
             return a / b;
         }
     }
-
     @Override
     public Object visitSuma_o_resta(CalculadoraParser.Suma_o_restaContext ctx) {
 
@@ -72,7 +67,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
             return a - b;
         }
     }
-
     @Override
     public Object visitAssignment(CalculadoraParser.AssignmentContext ctx) {
 
@@ -90,7 +84,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
 
         return null;
     }
-
     @Override
     public Object visitVariable(CalculadoraParser.VariableContext ctx) {
 
@@ -103,7 +96,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
             return null; //de mientras
         }
     }
-
     @Override
     public Object visitDeclaration(CalculadoraParser.DeclarationContext ctx) {
         String id = ctx.ID().toString();
@@ -123,7 +115,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         }
         return visitChildren(ctx);
     }
-
     @Override
     public Object visitCondicion(CalculadoraParser.CondicionContext ctx) {
         boolean bool, bool2;
@@ -172,7 +163,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         }
         return false;
     }
-
     @Override
     public Object visitIf(CalculadoraParser.IfContext ctx) {
 
@@ -188,8 +178,6 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         }
         return null;
     }
-
-
     @Override
     public Object visitFor(CalculadoraParser.ForContext ctx) {
         visit(ctx.declaration());

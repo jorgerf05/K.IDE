@@ -71,7 +71,6 @@ public class Controller implements Initializable {
 
         System.out.println(in);
         txt_codigo.setText(in);
-
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
