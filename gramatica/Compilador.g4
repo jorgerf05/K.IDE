@@ -1,6 +1,6 @@
-grammar Calculadora;
+grammar Compilador;
 
-calculadora: cuerpo;
+compilador: cuerpo;
 
 cuerpo: ENDL*'void ''principal' '(' args ')' '{' ENDL*contenido* '}';
 args: ARG*;

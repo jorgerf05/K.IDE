@@ -1,17 +1,17 @@
-package calculadora.principal;
+package compilador.principal;
 
-import calculadora.parser.CalculadoraBaseVisitor;
-import calculadora.parser.CalculadoraParser;
+import compilador.parser.CompiladorBaseVisitor;
+import compilador.parser.CompiladorParser;
 
 import java.util.*;
 
 
-public class MyVisitor extends CalculadoraBaseVisitor<Object> {
+public class MyVisitor extends CompiladorBaseVisitor<Object> {
     Map<String, Object> mem = new HashMap<String, Object>();
     String op;
     public static List<String> translation = new ArrayList<String>();
     @Override
-    public Object visitImpresion(CalculadoraParser.ImpresionContext ctx) {
+    public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
 
         String out;
         if (ctx.STRING() != null) {//si tenemos un string
@@ -30,13 +30,13 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         return null;
     }
     @Override
-    public Object visitNumero(CalculadoraParser.NumeroContext ctx) {
+    public Object visitNumero(CompiladorParser.NumeroContext ctx) {
 
         //System.out.println(ctx.NUM().getText());
         return Double.parseDouble(ctx.NUM().getText());
     }
     @Override
-    public Object visitPotencia(CalculadoraParser.PotenciaContext ctx) {
+    public Object visitPotencia(CompiladorParser.PotenciaContext ctx) {
 
         double a = (double) visit(ctx.expr(0));
         double b = (double) visit(ctx.expr(1));
@@ -44,7 +44,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         return Math.pow(a, b);
     }
     @Override
-    public Object visitMultiplicacion_o_division(CalculadoraParser.Multiplicacion_o_divisionContext ctx) {
+    public Object visitMultiplicacion_o_division(CompiladorParser.Multiplicacion_o_divisionContext ctx) {
 
         double a = (double) visit(ctx.expr(0));
         double b = (double) visit(ctx.expr(1));
@@ -56,7 +56,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         }
     }
     @Override
-    public Object visitSuma_o_resta(CalculadoraParser.Suma_o_restaContext ctx) {
+    public Object visitSuma_o_resta(CompiladorParser.Suma_o_restaContext ctx) {
 
         double a = (double) visit(ctx.expr(0));
         double b = (double) visit(ctx.expr(1));
@@ -68,7 +68,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         }
     }
     @Override
-    public Object visitAssignment(CalculadoraParser.AssignmentContext ctx) {
+    public Object visitAssignment(CompiladorParser.AssignmentContext ctx) {
 
         String id = ctx.ID().toString();
         Object obj = visit(ctx.expr());
@@ -85,7 +85,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         return null;
     }
     @Override
-    public Object visitVariable(CalculadoraParser.VariableContext ctx) {
+    public Object visitVariable(CompiladorParser.VariableContext ctx) {
 
         String id = ctx.ID().toString();
         if (mem.containsKey(id)) {
@@ -97,7 +97,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         }
     }
     @Override
-    public Object visitDeclaration(CalculadoraParser.DeclarationContext ctx) {
+    public Object visitDeclaration(CompiladorParser.DeclarationContext ctx) {
         String id = ctx.ID().toString();
         Object obj = visit(ctx.expr());
 
@@ -116,7 +116,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         return visitChildren(ctx);
     }
     @Override
-    public Object visitCondicion(CalculadoraParser.CondicionContext ctx) {
+    public Object visitCondicion(CompiladorParser.CondicionContext ctx) {
         boolean bool, bool2;
 
         if(ctx.opLog!=null) { //si tenemos AND o OR
@@ -164,7 +164,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         return false;
     }
     @Override
-    public Object visitIf(CalculadoraParser.IfContext ctx) {
+    public Object visitIf(CompiladorParser.IfContext ctx) {
 
         boolean key = (boolean) visit(ctx.condicion());
 
@@ -179,7 +179,7 @@ public class MyVisitor extends CalculadoraBaseVisitor<Object> {
         return null;
     }
     @Override
-    public Object visitFor(CalculadoraParser.ForContext ctx) {
+    public Object visitFor(CompiladorParser.ForContext ctx) {
         visit(ctx.declaration());
         boolean cond = (boolean) visit(ctx.condicion());
         String op = ctx.condicion().op.getText();

@@ -1,4 +1,4 @@
-package calculadora.principal;
+package compilador.principal;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

@@ -1,17 +1,16 @@
-package calculadora.principal;
+package compilador.principal;
 
+import compilador.parser.CompiladorLexer;
+import compilador.parser.CompiladorParser;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import calculadora.parser.CalculadoraLexer;
-import calculadora.parser.CalculadoraParser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,9 +27,9 @@ public class Controller implements Initializable {
         lbl_output.setText(null);
         String codigo = txt_codigo.getText();
         CharStream input = CharStreams.fromString(codigo);
-        CalculadoraLexer lexico = new CalculadoraLexer(input);
+        CompiladorLexer lexico = new CompiladorLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexico);
-        CalculadoraParser sintactico = new CalculadoraParser(tokens);
+        CompiladorParser sintactico = new CompiladorParser(tokens);
         ParseTree arbol = sintactico.cuerpo();
         MyVisitor visitas = new MyVisitor();
         visitas.visit(arbol);
