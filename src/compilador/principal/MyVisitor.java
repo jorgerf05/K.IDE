@@ -8,26 +8,25 @@ import java.util.*;
 
 public class MyVisitor extends CompiladorBaseVisitor<Object> {
     Map<String, Object> mem = new HashMap<String, Object>();
-    String op;
     public static List<String> translation = new ArrayList<String>();
     @Override
     public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
 
         String out;
-        if (ctx.STRING() != null) {//si tenemos un string
+        if (ctx.STRING() != null) {
             out = ctx.STRING().toString();
             System.out.println(out);
             Controller.static_lbl.setText(out);
-        } else {//si tenemos que resolver una variable numérica
-            out = String.valueOf(visit(ctx.expr()));
+        } else {
+            out = String.valueOf(this.visit(ctx.expr()));
             String variable = ctx.expr().getText();
-
             System.out.println(out);
             Controller.static_lbl.setText(out);
             translation.add("printf(\"%i\"," + variable + ");");
         }
 
         return null;
+
     }
     @Override
     public Object visitNumero(CompiladorParser.NumeroContext ctx) {
@@ -119,8 +118,9 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     public Object visitCondicion(CompiladorParser.CondicionContext ctx) {
         boolean bool, bool2;
 
+        System.out.println(ctx.getText());
+
         if(ctx.opLog!=null) { //si tenemos AND o OR
-            System.out.println(ctx.opLog.getText());
             switch (ctx.opLog.getText()) {
                 case "and" -> {
                     bool = (boolean) visit(ctx.condicion(0));
@@ -145,7 +145,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         else if (ctx.BOOL() != null) { //si presentamos booleanos literales
             bool = Boolean.parseBoolean(ctx.BOOL().getText());
             return bool;
-        } else { //si hay que resolver con lógica
+
+        } else{ //si hay que resolver con lógica numerica
             String operator = ctx.op.getText();
             double a = (double) visit(ctx.expr(0));
             double b = (double) visit(ctx.expr(1));
@@ -169,7 +170,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         boolean key = (boolean) visit(ctx.condicion());
 
         if (key) {
-            for (int i = 0; i < ctx.children.size() - 1; i++) {
+            for (int i = 0; i < ctx.children.size() - 1; i++) {//si la condicion es verdadera visitamos a los hijos
+                System.out.println(ctx.children.get(i).getText());
                 visit(ctx.children.get(i));
             }
 
@@ -201,8 +203,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                     }
                     break;
                 case "<=":
-                    for (int i = in; i <= to; i++) {
-                        for (int j = 0; j < ctx.contenido().size(); j++) {
+                    for (int i = in; i <= to; i++) {//ciclo de la gramatica
+                        for (int j = 0; j < ctx.contenido().size(); j++) {//ciclo para visitar a los hijos
                             visit(ctx.contenido(j));
                             visit(ctx.assign());
                             if (!(boolean) visit(ctx.condicion())) {

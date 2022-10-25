@@ -93,7 +93,7 @@
             <Font size="18.0" />
           </font>
         </Label>
-            <TextArea fx:id="txt_codigo" layoutX="45.0" layoutY="40.0" prefHeight="200.0" prefWidth="537.0" text="1+1" />
+            <TextArea fx:id="txt_codigo" layoutX="45.0" layoutY="40.0" prefHeight="200.0" prefWidth="537.0" text="void principal(){}" />
             <Button fx:id="btn_run" layoutX="496.0" layoutY="283.0" mnemonicParsing="false" onAction="#run" prefHeight="40.0" prefWidth="103.0" text="Run" />
             <Label fx:id="lbl_output" layoutX="45.0" layoutY="265.0" prefHeight="73.0" prefWidth="419.0" style="-fx-background-color: #E8E8E8;" text="Output" />
       </children>

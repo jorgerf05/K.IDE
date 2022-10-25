@@ -78,6 +78,13 @@ public interface CompiladorVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitImpresion(CompiladorParser.ImpresionContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code pare}
+	 * labeled alternative in {@link CompiladorParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPare(CompiladorParser.PareContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code potencia}
 	 * labeled alternative in {@link CompiladorParser#expr}.
 	 * @param ctx the parse tree
