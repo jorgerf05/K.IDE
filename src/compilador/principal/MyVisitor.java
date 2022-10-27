@@ -118,8 +118,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     public Object visitCondicion(CompiladorParser.CondicionContext ctx) {
         boolean bool, bool2;
 
-        System.out.println(ctx.getText());
-
         if(ctx.opLog!=null) { //si tenemos AND o OR
             switch (ctx.opLog.getText()) {
                 case "and" -> {
@@ -167,58 +165,35 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     @Override
     public Object visitIf(CompiladorParser.IfContext ctx) {
 
-        boolean key = (boolean) visit(ctx.condicion());
+        boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
 
         if (key) {
             for (int i = 0; i < ctx.children.size() - 1; i++) {//si la condicion es verdadera visitamos a los hijos
-                System.out.println(ctx.children.get(i).getText());
                 visit(ctx.children.get(i));
             }
 
-        } else {
-            visit(ctx.children.get(ctx.children.size() - 1));
+        } else {//qué hace esto? jAjajaj, mejor no lo muevo
+            //visit(ctx.children.get(ctx.children.size() - 1));
         }
         return null;
     }
     @Override
     public Object visitFor(CompiladorParser.ForContext ctx) {
-        visit(ctx.declaration());
-        boolean cond = (boolean) visit(ctx.condicion());
-        String op = ctx.condicion().op.getText();
 
-        if (cond) {
-            int in = (int) (Math.round((Double) visit(ctx.declaration().expr())));
-            int to = (int) (Math.round((Double) visit(ctx.condicion().expr(1))));
+        visit(ctx.declaration()); //primero validamos la declaracion
+        boolean cond = (boolean) visit(ctx.condicion()); //resolvemos la condición
 
-            switch (op) {
-                case "<":
-                    for (int i = in; i < to; i++) {
-                        for (int j = 0; j < ctx.contenido().size(); j++) {
-                            visit(ctx.contenido(j));
-                            visit(ctx.assign());
-                            if (!(boolean) visit(ctx.condicion())) {
-                                return null;
-                            }
-                        }
-                    }
-                    break;
-                case "<=":
-                    for (int i = in; i <= to; i++) {//ciclo de la gramatica
-                        for (int j = 0; j < ctx.contenido().size(); j++) {//ciclo para visitar a los hijos
-                            visit(ctx.contenido(j));
-                            visit(ctx.assign());
-                            if (!(boolean) visit(ctx.condicion())) {
-                                return null;
-                            }
-                        }
-                    }
-                    break;
-
-                default:
-                    Controller.static_lbl.setText("Operador no valido");
-                    break;
-
+        if (cond) {//si se cumple la condición de buenas a primeras
+            while (true) {
+                for (int j = 0; j < ctx.contenido().size(); j++) {//ciclo para visitar los hijos
+                    visit(ctx.contenido(j));
+                }
+                visit(ctx.assign()); //i = i+1
+                if (!(boolean) visit(ctx.condicion())) { //si la condición es falsa, hemos llegado al tope.
+                    return null;
+                }
             }
+
         }
         return null;
     }
