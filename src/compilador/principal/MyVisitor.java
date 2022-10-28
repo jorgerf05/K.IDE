@@ -167,13 +167,14 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
         boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
 
-        if (key) {
-            for (int i = 0; i < ctx.children.size() - 1; i++) {//si la condicion es verdadera visitamos a los hijos
+        if (key) {//si se cumple la condición
+            for (int i = 0; i < ctx.children.size() - 1; i++) {//visitamos a los hijos, menos al último (porque es else)
                 visit(ctx.children.get(i));
             }
 
-        } else {//qué hace esto? jAjajaj, mejor no lo muevo
-            //visit(ctx.children.get(ctx.children.size() - 1));
+        } else {//si no, visitamos el else, que es el último hijo de la estructura if
+                //si no hay else, esto simplemente visitará un newline y no hará nada
+            visit(ctx.children.get(ctx.children.size() - 1));
         }
         return null;
     }
@@ -193,7 +194,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                     return null;
                 }
             }
-
         }
         return null;
     }
