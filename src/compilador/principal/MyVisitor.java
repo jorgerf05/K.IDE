@@ -7,11 +7,33 @@ import java.util.*;
 
 
 public class MyVisitor extends CompiladorBaseVisitor<Object> {
-    Map<String, Object> mem = new HashMap<String, Object>();
+    Map<String, Object> memtest = new HashMap<String, Object>();
+    private List<Map<String, Object>> mem = new ArrayList<Map<String, Object>>();
+    int level = 0;
+
+    /*crear una lista de hashmaps. accedemos a ella mediante algo como
+    * lista.get(nivel) -> un hashmap de todos las variables de ese nivel
+    *
+    * */
+
     public static List<String> translation = new ArrayList<String>();
+
+    @Override
+    public Object visitCuerpo(CompiladorParser.CuerpoContext ctx) {
+        // INICIALIZACIÓN DE VARIABLES
+        System.out.println("Init");
+        Object init = null;
+        Map<String, Object> memtest = new HashMap<String, Object>();
+        for (int i = 0; i < 10; i++) {
+            Map<String, Object> dummy = new HashMap(memtest);
+            mem.add(dummy);
+        }
+        return visitChildren(ctx);
+    }
+
     @Override
     public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
-
+        Object test = null;
         String out;
         if (ctx.STRING() != null) {
             out = ctx.STRING().toString();
@@ -71,12 +93,13 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
         String id = ctx.ID().toString();
         Object obj = visit(ctx.expr());
-        if (!mem.containsKey(id)) {
-            mem.put(id, obj);
+        if (!mem.get(level).containsKey(id)) {
+            mem.get(level).put(id, obj);
         } else {
             //Controller.static_lbl.setText("La variable ya existe!!");
             if (obj != null) {
-                mem.replace(id, obj);
+                //mem.replace(id, obj);
+                mem.get(level).replace(id, obj);
             }
         }
         translation.add(id + " = " + obj.toString() + ";");
@@ -87,8 +110,10 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     public Object visitVariable(CompiladorParser.VariableContext ctx) {
 
         String id = ctx.ID().toString();
-        if (mem.containsKey(id)) {
-            return (mem.get(id));
+        //if (mem.containsKey(id)) {
+        if (mem.get(level).containsKey(id)){
+            //return (mem.get(id));
+            return mem.get(level).get(id);
         } else {
             Controller.static_lbl.setText("La variable " + id + " no existe!");
             System.out.println("La variable no existe!!");
@@ -100,12 +125,15 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         String id = ctx.ID().toString();
         Object obj = visit(ctx.expr());
 
-        if (!mem.containsKey(id)) {
+        //if (!mem.containsKey(id)) {
+        if (!mem.get(level).containsKey(id)){
             if (ctx.EQUALS() != null) { //Si hay asignacion
-                mem.put(id, obj);
+                //mem.put(id, obj);
+                mem.get(level).put(id, obj);
                 translation.add(ctx.TYPE().toString() + " " + id + " = " + visit(ctx.expr()) + ";");
             } else { //Si no asignacion
-                mem.put(id, null);
+                //mem.put(id, null);
+                mem.get(level).put(id, null);
                 translation.add(ctx.TYPE().toString() + " " + id + ";");
             }
         } else {
@@ -168,14 +196,17 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
 
         if (key) {//si se cumple la condición
+            changeLevel("up");
             for (int i = 0; i < ctx.children.size() - 1; i++) {//visitamos a los hijos, menos al último (porque es else)
                 visit(ctx.children.get(i));
             }
 
         } else {//si no, visitamos el else, que es el último hijo de la estructura if
                 //si no hay else, esto simplemente visitará un newline y no hará nada
+            changeLevel("up");
             visit(ctx.children.get(ctx.children.size() - 1));
         }
+        changeLevel("down");
         return null;
     }
     @Override
@@ -196,5 +227,23 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             }
         }
         return null;
+    }
+
+    void changeLevel(String str) {
+        switch (str) {
+            case "up":
+                System.out.println("Subiendo nivel...");
+                level++; //subimos el nivel
+                Map<String, Object> tmp = new HashMap<>(mem.get(level - 1)); //hacemos una copia temporal del nivel abajo
+                mem.set(level, tmp);//copiamos el contenido de tmp al nivel actual
+                break;
+
+            case "down":
+                System.out.println("Bajando nivel...");
+                Map<String, Object> memtest = new HashMap<String, Object>();//Mapa vacío
+                mem.set(level, memtest); //Vaciamos el nivel
+                level--; //bajamos de nivel
+                break;
+        }
     }
 }
