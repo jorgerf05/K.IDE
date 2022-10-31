@@ -17,17 +17,18 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     * */
 
     public static List<String> translation = new ArrayList<String>();
+    public static List<String> jasmin = new ArrayList<String>();
+
 
     @Override
     public Object visitCuerpo(CompiladorParser.CuerpoContext ctx) {
         // INICIALIZACIÓN DE VARIABLES
-        System.out.println("Init");
-        Object init = null;
         Map<String, Object> memtest = new HashMap<String, Object>();
         for (int i = 0; i < 10; i++) {
             Map<String, Object> dummy = new HashMap(memtest);
             mem.add(dummy);
         }
+        //jasmin.add(ctx.);
         return visitChildren(ctx);
     }
 
@@ -53,7 +54,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     @Override
     public Object visitNumero(CompiladorParser.NumeroContext ctx) {
 
-        //System.out.println(ctx.NUM().getText());
         return Double.parseDouble(ctx.NUM().getText());
     }
     @Override
@@ -96,14 +96,11 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         if (!mem.get(level).containsKey(id)) {
             mem.get(level).put(id, obj);
         } else {
-            //Controller.static_lbl.setText("La variable ya existe!!");
             if (obj != null) {
-                //mem.replace(id, obj);
                 mem.get(level).replace(id, obj);
             }
         }
         translation.add(id + " = " + obj.toString() + ";");
-
         return null;
     }
     @Override
@@ -116,7 +113,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             return mem.get(level).get(id);
         } else {
             Controller.static_lbl.setText("La variable " + id + " no existe!");
-            System.out.println("La variable no existe!!");
+            System.out.println("La variable " +id + " no existe!!");
             return null; //de mientras
         }
     }
@@ -125,20 +122,17 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         String id = ctx.ID().toString();
         Object obj = visit(ctx.expr());
 
-        //if (!mem.containsKey(id)) {
         if (!mem.get(level).containsKey(id)){
             if (ctx.EQUALS() != null) { //Si hay asignacion
-                //mem.put(id, obj);
                 mem.get(level).put(id, obj);
                 translation.add(ctx.TYPE().toString() + " " + id + " = " + visit(ctx.expr()) + ";");
             } else { //Si no asignacion
-                //mem.put(id, null);
                 mem.get(level).put(id, null);
                 translation.add(ctx.TYPE().toString() + " " + id + ";");
             }
         } else {
             Controller.static_lbl.setText("La variable " + id + " ya existe!");
-            System.out.println("La variable ya existe!");
+            System.out.println("La variable " + id + " ya existe!");
         }
         return visitChildren(ctx);
     }
@@ -216,12 +210,14 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         boolean cond = (boolean) visit(ctx.condicion()); //resolvemos la condición
 
         if (cond) {//si se cumple la condición de buenas a primeras
+            changeLevel("up");
             while (true) {
                 for (int j = 0; j < ctx.contenido().size(); j++) {//ciclo para visitar los hijos
                     visit(ctx.contenido(j));
                 }
                 visit(ctx.assign()); //i = i+1
                 if (!(boolean) visit(ctx.condicion())) { //si la condición es falsa, hemos llegado al tope.
+                    changeLevel("down");
                     return null;
                 }
             }

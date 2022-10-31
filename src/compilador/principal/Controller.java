@@ -62,7 +62,6 @@ public class Controller implements Initializable {
         in = in.replaceAll("main", "principal");
         in = in.replaceAll(",", "");
         in = in.replaceAll(";", "");
-        //in = in.replaceAll("\n", "");
         in = in.replaceAll("&&","and");
         in = in.replaceAll("(\\/[a-zA-Z0-9 ]*)","");
         in = in.replaceAll("printf", "console.print");
