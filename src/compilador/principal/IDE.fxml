@@ -53,6 +53,7 @@
             <MenuItem mnemonicParsing="false" text="Open…" />
                   <MenuItem fx:id="btn_from_c" mnemonicParsing="false" onAction="#fromC" text="Traducir desde C" />
                   <MenuItem mnemonicParsing="false" onAction="#toC" text="Traducir a C" />
+                  <MenuItem mnemonicParsing="false" onAction="#writeToTxt" text="Traducir a jasmin" />
             <Menu mnemonicParsing="false" text="Open Recent" />
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" text="Close" />

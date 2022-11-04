@@ -11,12 +11,13 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-
 public class Controller implements Initializable {
     @FXML private TextArea txt_codigo;
     @FXML private Label lbl_output;
@@ -69,6 +70,21 @@ public class Controller implements Initializable {
 
         System.out.println(in);
         txt_codigo.setText(in);
+    }
+    @FXML
+    public void writeToTxt() throws IOException {
+        run(null);
+        try{
+            FileWriter myWriter = new FileWriter("filename.txt");
+            for (String str: MyVisitor.jasmin
+            ) {
+                myWriter.write(str);
+            }
+            myWriter.close();
+        }catch (IOException ex){
+            System.out.println("error "+ex);
+        }
+
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {

@@ -28,7 +28,19 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             Map<String, Object> dummy = new HashMap(memtest);
             mem.add(dummy);
         }
-        //jasmin.add(ctx.);
+
+        jasmin.add(".class public "+ctx.PRINCIPAL().getText());
+        jasmin.add("\n.super java/lang/object");
+        jasmin.add("\n.method public static main([Ljava/lang/String;)V");
+        jasmin.add("\n\t.limit stack 10");
+        jasmin.add("\n\t.limit locals 40");
+
+        return visitChildren(ctx);
+    }
+
+    @Override public Object visitFin(CompiladorParser.FinContext ctx) {
+        jasmin.add("\n\treturn");
+        jasmin.add("\n.end method");
         return visitChildren(ctx);
     }
 

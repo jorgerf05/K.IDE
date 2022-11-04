@@ -2,7 +2,8 @@ grammar Compilador;
 
 compilador: cuerpo;
 
-cuerpo: ENDL*'void ''principal' '(' args ')' '{' ENDL*contenido* '}';
+cuerpo: ENDL* VOID ' ' PRINCIPAL '(' args ')' '{' ENDL*contenido* fin;
+fin:'}';
 args: ARG*;
 
 contenido:
@@ -39,6 +40,9 @@ expr:
 | NUM #numero
 | ID #variable
 ;
+
+VOID: 'void';
+PRINCIPAL: 'principal';
 
 NUM: [0-9]+(.[0-9]+)*;
 POTENCIA:'^';

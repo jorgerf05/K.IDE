@@ -23,6 +23,12 @@ public interface CompiladorVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCuerpo(CompiladorParser.CuerpoContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link CompiladorParser#fin}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFin(CompiladorParser.FinContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link CompiladorParser#args}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
