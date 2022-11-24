@@ -5,7 +5,6 @@ import compilador.parser.CompiladorParser;
 
 import java.util.*;
 
-
 public class MyVisitor extends CompiladorBaseVisitor<Object> {
     Map<String, Object> memtest = new HashMap<String, Object>();
     private List<Map<String, Object>> mem = new ArrayList<Map<String, Object>>();
@@ -15,10 +14,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     * lista.get(nivel) -> un hashmap de todos las variables de ese nivel
     *
     * */
-
     public static List<String> translation = new ArrayList<String>();
     public static List<String> jasmin = new ArrayList<String>();
-
 
     @Override
     public Object visitCuerpo(CompiladorParser.CuerpoContext ctx) {
@@ -33,17 +30,15 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         jasmin.add("\n.super java/lang/object");
         jasmin.add("\n.method public static main([Ljava/lang/String;)V");
         jasmin.add("\n\t.limit stack 10");
-        jasmin.add("\n\t.limit locals 40");
+        jasmin.add("\n\t.limit locals 40\n\n");
 
         return visitChildren(ctx);
     }
-
     @Override public Object visitFin(CompiladorParser.FinContext ctx) {
         jasmin.add("\n\treturn");
         jasmin.add("\n.end method");
         return visitChildren(ctx);
     }
-
     @Override
     public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
         Object test = null;
@@ -107,6 +102,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         Object obj = visit(ctx.expr());
         if (!mem.get(level).containsKey(id)) {
             mem.get(level).put(id, obj);
+            jasmin.add("ldc "+obj.toString()+"\nistore "+mem.get(level).size());
         } else {
             if (obj != null) {
                 mem.get(level).replace(id, obj);
@@ -137,8 +133,9 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         if (!mem.get(level).containsKey(id)){
             if (ctx.EQUALS() != null) { //Si hay asignacion
                 mem.get(level).put(id, obj);
-                translation.add(ctx.TYPE().toString() + " " + id + " = " + visit(ctx.expr()) + ";");
-            } else { //Si no asignacion
+                translation.add(ctx.TYPE().toString() + " " + id + " = " + obj + ";");
+                jasmin.add("ldc "+obj.toString()+" \nistore "+mem.get(level).size()+"\n");
+            } else { //Si no hay asignacion
                 mem.get(level).put(id, null);
                 translation.add(ctx.TYPE().toString() + " " + id + ";");
             }
@@ -236,7 +233,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         }
         return null;
     }
-
     void changeLevel(String str) {
         switch (str) {
             case "up":

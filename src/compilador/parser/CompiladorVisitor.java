@@ -65,18 +65,18 @@ public interface CompiladorVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFor(CompiladorParser.ForContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link CompiladorParser#declaration}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDeclaration(CompiladorParser.DeclarationContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code assignment}
 	 * labeled alternative in {@link CompiladorParser#assign}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitAssignment(CompiladorParser.AssignmentContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CompiladorParser#declaration}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDeclaration(CompiladorParser.DeclarationContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CompiladorParser#impresion}.
 	 * @param ctx the parse tree

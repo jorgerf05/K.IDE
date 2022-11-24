@@ -2,7 +2,7 @@ grammar Compilador;
 
 compilador: cuerpo;
 
-cuerpo: ENDL* VOID ' ' PRINCIPAL '(' args ')' '{' ENDL*contenido* fin;
+cuerpo: ENDL* VOID PRINCIPAL '(' args ')' '{' ENDL*contenido* fin;
 fin:'}';
 args: ARG*;
 
@@ -26,9 +26,9 @@ else: ELSE ('{' ENDL* contenido* ENDL* '}'|if);
 
 for: FOR '('declaration', ' condicion', 'assign')''{'ENDL* contenido* ENDL*'}';
 
-assign: ID EQUALS expr #assignment;
-
 declaration:  TYPE ID (EQUALS expr)?;
+
+assign: ID EQUALS expr #assignment;
 
 impresion: PRINT '('expr')'|PRINT'('STRING')';
 
@@ -43,7 +43,6 @@ expr:
 
 VOID: 'void';
 PRINCIPAL: 'principal';
-
 NUM: [0-9]+(.[0-9]+)*;
 POTENCIA:'^';
 MAS: '+';
