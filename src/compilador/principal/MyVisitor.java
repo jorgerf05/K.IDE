@@ -9,6 +9,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     Map<String, Object> memtest = new HashMap<String, Object>();
     private List<Map<String, Object>> mem = new ArrayList<Map<String, Object>>();
     int level = 0;
+    int methods = 0;
 
     /*crear una lista de hashmaps. accedemos a ella mediante algo como
     * lista.get(nivel) -> un hashmap de todos las variables de ese nivel
@@ -27,7 +28,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         }
 
         jasmin.add(".class public "+ctx.PRINCIPAL().getText());
-        jasmin.add("\n.super java/lang/object");
+        jasmin.add("\n.super java/lang/Object");
         jasmin.add("\n.method public static main([Ljava/lang/String;)V");
         jasmin.add("\n\t.limit stack 10");
         jasmin.add("\n\t.limit locals 40\n\n");
@@ -43,16 +44,25 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
         Object test = null;
         String out;
-        if (ctx.STRING() != null) {
+        if (ctx.STRING() != null) {//si hay un string literal
             out = ctx.STRING().toString();
             System.out.println(out);
             Controller.static_lbl.setText(out);
-        } else {
-            out = String.valueOf(this.visit(ctx.expr()));
+            jasmin.add("\ngetstatic java/lang/System/out Ljava/io/PrintStream;");
+            jasmin.add("\nldc "+out);
+            jasmin.add("\ninvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V");
+        } else {//si hay variable
+            //out = String.valueOf(this.visit(ctx.expr()));
+            double out_real = (double)visit(ctx.expr());
+            int out_int = (int)out_real;
+            out = String.valueOf(out_real);
             String variable = ctx.expr().getText();
             System.out.println(out);
             Controller.static_lbl.setText(out);
             translation.add("printf(\"%i\"," + variable + ");");
+            jasmin.add("\ngetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+            jasmin.add("\nldc "+out_int+"\n");
+            jasmin.add("invokevirtual java/io/PrintStream/println(I)V\n");
         }
 
         return null;
@@ -61,7 +71,12 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     @Override
     public Object visitNumero(CompiladorParser.NumeroContext ctx) {
 
-        return Double.parseDouble(ctx.NUM().getText());
+        double num = Double.parseDouble(ctx.NUM().getText());
+        int num_i =(int)num;
+        jasmin.add("ldc "+num_i+"\n");
+        //jasmin.add("\tldc "+num+"\n\tistore "+mem.get(level).size()+"\n");
+        return num;
+
     }
     @Override
     public Object visitPotencia(CompiladorParser.PotenciaContext ctx) {
@@ -102,7 +117,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         Object obj = visit(ctx.expr());
         if (!mem.get(level).containsKey(id)) {
             mem.get(level).put(id, obj);
-            jasmin.add("ldc "+obj.toString()+"\nistore "+mem.get(level).size());
+            //jasmin.add("ldc "+obj.toString()+"\nistore "+mem.get(level).size());
         } else {
             if (obj != null) {
                 mem.get(level).replace(id, obj);
@@ -134,7 +149,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             if (ctx.EQUALS() != null) { //Si hay asignacion
                 mem.get(level).put(id, obj);
                 translation.add(ctx.TYPE().toString() + " " + id + " = " + obj + ";");
-                jasmin.add("ldc "+obj.toString()+" \nistore "+mem.get(level).size()+"\n");
+                //jasmin.add("ldc "+obj.toString()+" \nistore "+mem.get(level).size()+"\n");
             } else { //Si no hay asignacion
                 mem.get(level).put(id, null);
                 translation.add(ctx.TYPE().toString() + " " + id + ";");
@@ -189,6 +204,15 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                 case "==" -> a == b;
                 default -> false;
             };
+
+            switch (operator){
+                case ">": bool = a > b;
+                case ">=": bool = a >= b;
+                case "<" : bool = a < b;
+                case "<=": bool = a <= b;
+                case "!=": bool = a != b;
+                case "==": bool = a == b; jasmin.add("if_icmpeq ");
+            }
             return bool;
         }
         return false;
@@ -198,17 +222,32 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
         boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
 
+        jasmin.add("method"+methods+"\nreturn\n");
+        jasmin.add("method"+methods+":\n");
+
         if (key) {//si se cumple la condición
             changeLevel("up");
-            for (int i = 0; i < ctx.children.size() - 1; i++) {//visitamos a los hijos, menos al último (porque es else)
-                visit(ctx.children.get(i));
+
+            for (int i = 0; i <= ctx.contenido().size()-1 ; i++) {//visitamos a los hijos, menos al último (porque es else)
+                System.out.println(ctx.contenido().get(i).getText());
+                visit(ctx.contenido().get(i));
             }
+            jasmin.add("\nreturn\n");
 
         } else {//si no, visitamos el else, que es el último hijo de la estructura if
                 //si no hay else, esto simplemente visitará un newline y no hará nada
             changeLevel("up");
-            visit(ctx.children.get(ctx.children.size() - 1));
+            methods++;
+            jasmin.add("goto method"+methods);
+            jasmin.add("\nmethod"+methods+"\n");
+            //visit(ctx.children.get(ctx.children.size() - 1));
+
+            for (int i = 0; i <= ctx.else_().children.size() -1 ; i++) {
+                System.out.println(ctx.else_().children.get(i).getText());
+                visit(ctx.else_().children.get(i));
+            }
         }
+        jasmin.add("\nreturn\n");
         changeLevel("down");
         return null;
     }
