@@ -12,7 +12,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     int methods = 0;
 
     /*crear una lista de hashmaps. accedemos a ella mediante algo como
-    * lista.get(nivel) -> un hashmap de todos las variables de ese nivel
+    * lista.get(nivel) -> un hashmap de todas las variables de ese nivel
     *
     * */
     public static List<String> translation = new ArrayList<String>();
@@ -255,10 +255,16 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     public Object visitFor(CompiladorParser.ForContext ctx) {
 
         visit(ctx.declaration()); //primero validamos la declaracion
-        boolean cond = (boolean) visit(ctx.condicion()); //resolvemos la condición
+        boolean cond = (boolean) visit(ctx.condicion()); //resolvemos la condición+
+        jasmin.add("\nLoop\n");
+        //int to = (int) (Math.round((Double) visit(ctx.condicion().expr(1))));
+        jasmin.add("\nldc ");
+        jasmin.add("\nistore 10");
 
         if (cond) {//si se cumple la condición de buenas a primeras
+            jasmin.add("\nLoop:");
             changeLevel("up");
+
             while (true) {
                 for (int j = 0; j < ctx.contenido().size(); j++) {//ciclo para visitar los hijos
                     visit(ctx.contenido(j));
