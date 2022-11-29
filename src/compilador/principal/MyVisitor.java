@@ -7,28 +7,25 @@ import java.util.*;
 
 public class MyVisitor extends CompiladorBaseVisitor<Object> {
     Map<String, Object> memtest = new HashMap<String, Object>();
-    private List<Map<String, Object>> mem = new ArrayList<Map<String, Object>>();
-    private List<String> jasminRelation = new ArrayList<String>();
+
+    /*crear una lista de hashmaps. accedemos a ella mediante algo como
+     * lista.get(nivel) -> un hashmap de todas las variables de ese nivel
+     * */
+    private List<LinkedHashMap<String, Object>> mem = new ArrayList<LinkedHashMap<String, Object>>();
     int level = 0;
-    int methods = 0;
     boolean writing = true;
     boolean needsIf = false;
 
-    /*crear una lista de hashmaps. accedemos a ella mediante algo como
-    * lista.get(nivel) -> un hashmap de todas las variables de ese nivel
-    *
-    * */
     public static List<String> translation = new ArrayList<String>();
     public static List<String> jasmin = new ArrayList<String>();
 
     @Override
     public Object visitCuerpo(CompiladorParser.CuerpoContext ctx) {
         // INICIALIZACIÓN DE VARIABLES
-        Map<String, Object> memtest = new HashMap<String, Object>();
+        LinkedHashMap<String, Object> memtest = new LinkedHashMap<>();
         for (int i = 0; i < 10; i++) {
-            Map<String, Object> dummy = new LinkedHashMap<>(memtest);
+            LinkedHashMap<String, Object> dummy = new LinkedHashMap<>(memtest);
             mem.add(dummy);
-            jasminRelation.add(null);
         }
         jasmin.add(";------AUTO-GENERATED JASMIN JVM CODE------\n");
         jasmin.add(".class public "+ctx.PRINCIPAL().getText());
@@ -130,7 +127,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         if (!mem.get(level).containsKey(id)) {
             writeJasmin("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
             mem.get(level).put(id, obj);
-            jasminRelation.set(mem.get(level).size(), id);
         } else {
             if (obj != null) {
                 mem.get(level).replace(id, obj);
@@ -168,7 +164,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             if (ctx.EQUALS() != null) { //Si hay asignacion
                 writeJasmin("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
                 mem.get(level).put(id, obj);
-                jasminRelation.set(mem.get(level).size(), id);
                 translation.add(ctx.TYPE().toString() + " " + id + " = " + obj + ";");
             } else { //Si no hay asignacion
                 mem.get(level).put(id, null);
@@ -318,28 +313,16 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             case "up":
                 System.out.println("Subiendo nivel...");
                 level++; //subimos el nivel
-                Map<String, Object> tmp = new HashMap<>(mem.get(level - 1)); //hacemos una copia temporal del nivel abajo
+                LinkedHashMap<String, Object> tmp = new LinkedHashMap<>(mem.get(level - 1)); //hacemos una copia temporal del nivel abajo
                 mem.set(level, tmp);//copiamos el contenido de tmp al nivel actual
                 break;
 
             case "down":
                 System.out.println("Bajando nivel...");
-                Map<String, Object> memtest = new HashMap<String, Object>();//Mapa vacío
+                LinkedHashMap<String, Object> memtest = new LinkedHashMap<>();//Mapa vacío
                 mem.set(level, memtest); //Vaciamos el nivel
                 level--; //bajamos de nivel
                 break;
-        }
-    }
-    void addJasminVariables(){
-        /*
-        * Traduce todas las variables en la memoria a jasmin. No reconoce variables de scope, ni variables
-        * de ciclos.
-        * */
-        List<Object> values = new ArrayList<>(mem.get(level).values());
-        for (int i = 0; i <= values.size() ; i++) {
-            double num = (double) values.get(i);
-            jasmin.add("ldc "+(int)num+"\nistore "+i);
-
         }
     }
     void writeJasmin(String line){
@@ -347,20 +330,21 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             jasmin.add(line);
         }
     }
-
     void findJasmin(String id){
         System.out.println("Buscando variable... "+id);
         List<String> keys = new ArrayList<>(mem.get(level).keySet());
 
         System.out.println("-------VARIABLES EN MEMORIA-------");
+        int i = 0;
         for (String str:keys
              ) {
-            System.out.println(str);
+            System.out.println(i + " -> "+str);
+            i++;
 
         }
         System.out.println("----------------------------------");
 
-        int i = 0;
+        i = 0;
         boolean found = false;
         try {
             do {
@@ -382,14 +366,15 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         List<String> keys = new ArrayList<>(mem.get(level).keySet());
 
         System.out.println("-------VARIABLES EN MEMORIA-------");
+        int i = 0;
         for (String str:keys
         ) {
-            System.out.println(str);
-
+            System.out.println(i + " -> "+str);
+            i++;
         }
         System.out.println("----------------------------------");
 
-        int i = 0;
+        i = 0;
         boolean found = false;
         try {
             do {
