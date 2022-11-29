@@ -15,6 +15,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     int level = 0;
     boolean writing = true;
     boolean needsIf = false;
+    public static boolean is_translating = false;
 
     public static List<String> translation = new ArrayList<String>();
     public static List<String> jasmin = new ArrayList<String>();
@@ -79,7 +80,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         double num = Double.parseDouble(ctx.NUM().getText());
         int num_i =(int)num;
         writeJasmin("ldc "+num_i+"\n");
-        //jasmin.add("\tldc "+num+"\n\tistore "+mem.get(level).size()+"\n");
         return num;
 
     }
@@ -236,37 +236,51 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     }
     @Override
     public Object visitIf(CompiladorParser.IfContext ctx) {
+
         findJasmin(ctx.condicion().expr(0).getText());
         findJasmin(ctx.condicion().expr(1).getText());
-        needsIf = true;
+
+        needsIf = writing; //creamos la sentencia if
         boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
-        needsIf = false;
+        needsIf = false; //desactivamos la creación del if
 
-        jasmin.add("if"+"\ngoto else\n");
+        writeJasmin("if"+"\ngoto else\n"); //if_xxxxx -> if, else -> goto else
 
-        jasmin.add("if"+":\n");
-
-        if (key) {//si se cumple la condición
-            changeLevel("up");
-
-            for (int i = 0; i <= ctx.contenido().size()-1 ; i++) {//visitamos a los hijos, menos al último (porque es else)
-                System.out.println(ctx.contenido().get(i).getText());
-                visit(ctx.contenido().get(i));
+        if (is_translating){
+            try {
+                writeJasmin("if"+":\n");
+                for (int i = 0; i <= ctx.contenido().size()-1 ; i++) {
+                    visit(ctx.contenido().get(i));
+                }
+                writeJasmin("\ngoto fin\n");
+                writeJasmin("\nelse:\n");
+                for (int i = 0; i <= ctx.else_().children.size() -1 ; i++) {
+                    visit(ctx.else_().children.get(i));
+                }
+                writeJasmin("\nfin:\n");
+            }catch (Exception e){
+                System.out.println("errorsito");
             }
-            jasmin.add("\nelse:\nldc 0");//dummy code
-            jasmin.add("\ngoto fin\n");
 
-        } else {//si no, visitamos el else, que es el último hijo de la estructura if
+
+        }else{
+            changeLevel("up");
+            if (key) {//si se cumple la condición y no se está traduciendo
+
+                for (int i = 0; i <= ctx.contenido().size()-1 ; i++) {//visitamos a los hijos, menos al último (porque es else)
+                    System.out.println(ctx.contenido().get(i).getText());
+                    visit(ctx.contenido().get(i));
+                }
+
+            } else {//si no, visitamos el else, que es el último hijo de la estructura if
                 //si no hay else, esto simplemente visitará un newline y no hará nada
-            changeLevel("up");
-            jasmin.add("else:\n");
-
-            for (int i = 0; i <= ctx.else_().children.size() -1 ; i++) {
-                visit(ctx.else_().children.get(i));
+                for (int i = 0; i <= ctx.else_().children.size() -1 ; i++) {
+                    visit(ctx.else_().children.get(i));
+                }
             }
+            changeLevel("down");
         }
-        changeLevel("down");
-        writeJasmin("\nfin:\n");
+
         return null;
     }
     @Override

@@ -75,7 +75,9 @@ public class Controller implements Initializable {
     @FXML
     public void writeToTxt() throws IOException {
         MyVisitor.jasmin.clear();
+        MyVisitor.is_translating = true;
         run(null); //Llenamos la lista de traduccion. CAMBIAR A METODO ADDJASMINVARIABLES
+        MyVisitor.is_translating = false;
         try{
             FileWriter myWriter = new FileWriter("Principal.j");
             for (String str: MyVisitor.jasmin
