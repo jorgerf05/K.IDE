@@ -12,6 +12,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     int level = 0;
     int methods = 0;
     boolean writing = true;
+    boolean needsIf = false;
 
     /*crear una lista de hashmaps. accedemos a ella mediante algo como
     * lista.get(nivel) -> un hashmap de todas las variables de ese nivel
@@ -80,7 +81,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
         double num = Double.parseDouble(ctx.NUM().getText());
         int num_i =(int)num;
-        //jasmin.add("ldc "+num_i+"\n");
+        writeJasmin("ldc "+num_i+"\n");
         //jasmin.add("\tldc "+num+"\n\tistore "+mem.get(level).size()+"\n");
         return num;
 
@@ -127,7 +128,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         int entero_jasmin = (int) dummy;
 
         if (!mem.get(level).containsKey(id)) {
-            jasmin.add("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
+            writeJasmin("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
             mem.get(level).put(id, obj);
             jasminRelation.set(mem.get(level).size(), id);
         } else {
@@ -165,7 +166,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
         if (!mem.get(level).containsKey(id)){
             if (ctx.EQUALS() != null) { //Si hay asignacion
-                jasmin.add("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
+                writeJasmin("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
                 mem.get(level).put(id, obj);
                 jasminRelation.set(mem.get(level).size(), id);
                 translation.add(ctx.TYPE().toString() + " " + id + " = " + obj + ";");
@@ -224,25 +225,31 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                 default -> false;
             };
 
-            /*switch (operator){
-                case ">": bool = a > b;
-                case ">=": bool = a >= b;
-                case "<" : bool = a < b;
-                case "<=": bool = a <= b;
-                case "!=": bool = a != b;
-                case "==": bool = a == b; jasmin.add("if_icmpeq ");
-            }*/
+            if (needsIf) {
+                switch (operator) {
+                    case ">" -> jasmin.add("if_icmpgt ");
+                    case ">=" -> jasmin.add("if_icmpge ");
+                    case "<" -> jasmin.add("if_icmplt ");
+                    case "<=" -> jasmin.add("if_icmple ");
+                    case "!=" -> jasmin.add("if_icmpnq ");
+                    case "==" -> jasmin.add("if_icmpeq ");
+                }
+            }
             return bool;
         }
         return false;
     }
     @Override
     public Object visitIf(CompiladorParser.IfContext ctx) {
-
+        findJasmin(ctx.condicion().expr(0).getText());
+        findJasmin(ctx.condicion().expr(1).getText());
+        needsIf = true;
         boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
+        needsIf = false;
 
-        jasmin.add("method"+methods+"\nreturn\n");
-        jasmin.add("method"+methods+":\n");
+        jasmin.add("if"+"\ngoto else\n");
+
+        jasmin.add("if"+":\n");
 
         if (key) {//si se cumple la condición
             changeLevel("up");
@@ -251,23 +258,20 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                 System.out.println(ctx.contenido().get(i).getText());
                 visit(ctx.contenido().get(i));
             }
-            jasmin.add("\nreturn\n");
+            jasmin.add("\nelse:\nldc 0");//dummy code
+            jasmin.add("\ngoto fin\n");
 
         } else {//si no, visitamos el else, que es el último hijo de la estructura if
                 //si no hay else, esto simplemente visitará un newline y no hará nada
             changeLevel("up");
-            methods++;
-            jasmin.add("goto method"+methods);
-            jasmin.add("\nmethod"+methods+"\n");
-            //visit(ctx.children.get(ctx.children.size() - 1));
+            jasmin.add("else:\n");
 
             for (int i = 0; i <= ctx.else_().children.size() -1 ; i++) {
-                System.out.println(ctx.else_().children.get(i).getText());
                 visit(ctx.else_().children.get(i));
             }
         }
-        jasmin.add("\nreturn\n");
         changeLevel("down");
+        writeJasmin("\nfin:\n");
         return null;
     }
     @Override
@@ -277,7 +281,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         boolean cond = (boolean) visit(ctx.condicion()); //resolvemos la condición+
         int to = (int) (Math.round((Double) visit(ctx.condicion().expr(1))));
         writeJasmin("\nldc "+to);
-        writeJasmin("\nistore 10");
+        writeJasmin("\nistore 10"); //la posicion 10 está reservada para variables de loop
 
         if (cond) {//si se cumple la condición de buenas a primeras
             writeJasmin("\nLoop:");
@@ -287,11 +291,21 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                 for (int j = 0; j < ctx.contenido().size(); j++) {//ciclo para visitar los hijos
                     visit(ctx.contenido(j));
                 }
-                writeJasmin("\niinc 10 -1\niload 10\nifne Loop");
+
+                findJasmin(ctx.condicion().expr(0).getText()); //iload x
+                writeJasmin("\nldc 1");
+                writeJasmin("\niadd");
+                writeJasmin("\nistore "+loadJasmin(ctx.condicion().expr(0).getText()));
+                writeJasmin("\niload 10");//cargamos el tope
+                writeJasmin("\niload "+loadJasmin(ctx.condicion().expr(0).getText()));//cargamos i
+                writeJasmin("\nif_icmpeq fin_loop"); //si son iguales, llegamos al tope
+                writeJasmin("\ngoto Loop\n");
+
                 visit(ctx.assign()); //i = i+1
                 if (!(boolean) visit(ctx.condicion())) { //si la condición es falsa, hemos llegado al tope.
                     changeLevel("down");
                     writing = true;
+                    writeJasmin("\nfin_loop:\n");
                     return null;
                 }
                 writing = false;
@@ -328,7 +342,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
         }
     }
-
     void writeJasmin(String line){
         if (writing){
             jasmin.add(line);
@@ -355,7 +368,7 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
                     System.out.print("VARIABLE ENCONTRADA: ");
                     System.out.println("pos -> "+i+" var -> "+keys.get(i));
-                    writeJasmin("\niload " + i); //cargamos la variable i
+                    writeJasmin("\niload " + i+"\n"); //cargamos la variable i
                     found = true;
                 }
                 i++;
@@ -363,6 +376,36 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         }catch (Exception e){
             System.out.println("No se encontró");
         }
+    }
+    Object loadJasmin(String id){
+        System.out.println("Buscando variable... "+id);
+        List<String> keys = new ArrayList<>(mem.get(level).keySet());
 
+        System.out.println("-------VARIABLES EN MEMORIA-------");
+        for (String str:keys
+        ) {
+            System.out.println(str);
+
+        }
+        System.out.println("----------------------------------");
+
+        int i = 0;
+        boolean found = false;
+        try {
+            do {
+                if (Objects.equals(keys.get(i), id)) { //si encontramos el nombre
+
+                    System.out.print("VARIABLE ENCONTRADA: ");
+                    System.out.println("pos -> "+i+" var -> "+keys.get(i));
+                    found = true;
+                    return i; //cargamos la variable i
+
+                }
+                i++;
+            }while (!found);
+        }catch (Exception e){
+            System.out.println("No se encontró");
+        }
+        return null;
     }
 }
