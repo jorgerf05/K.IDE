@@ -1,5 +1,6 @@
 package compilador.principal;
 
+import compilador.principal.Caller;
 import compilador.parser.CompiladorLexer;
 import compilador.parser.CompiladorParser;
 import javafx.event.ActionEvent;
@@ -73,17 +74,25 @@ public class Controller implements Initializable {
     }
     @FXML
     public void writeToTxt() throws IOException {
-        run(null);
+        MyVisitor.jasmin.clear();
+        run(null); //Llenamos la lista de traduccion. CAMBIAR A METODO ADDJASMINVARIABLES
         try{
-            FileWriter myWriter = new FileWriter("filename.txt");
+            FileWriter myWriter = new FileWriter("Principal.j");
             for (String str: MyVisitor.jasmin
             ) {
                 myWriter.write(str);
             }
             myWriter.close();
+
+            ArrayList<String> commands = new ArrayList<String>();
+            commands.add("python");
+            commands.add("Main.py");
+            Caller caller = new Caller(commands);
+            caller.execute();
         }catch (IOException ex){
             System.out.println("error "+ex);
         }
+
 
     }
     @Override
