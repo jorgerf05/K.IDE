@@ -1,4 +1,5 @@
 # Kiwi / K.IDE
+## Overview
  Entorno de desarrollo que incluye compilador y transpilador para Lenguajes y Autómatas II. Escrito en Java, ANTLR4, Python y un poco de CSS. 
 Inspirado en el estilo de Python y ciertas referencias a JavaScript
 
@@ -15,11 +16,11 @@ Inspirado en el estilo de Python y ciertas referencias a JavaScript
 ### Instalación
 
 ```bash
-git clone https://github.com/jorgerf05/Compilador.git
-cd Compilador
+git clone https://github.com/jorgerf05/K.IDE.git
+cd K.IDE
 idea .
 ```
-
+## --- Documentación ---
 
 ### Gramática de lenguaje
 
