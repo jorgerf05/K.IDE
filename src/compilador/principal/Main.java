@@ -14,7 +14,7 @@ public class Main extends Application {
         String css_theme = Objects.requireNonNull(this.getClass().getResource("bootstrap3.css")).toExternalForm();
         scene.getStylesheets().add(css_theme);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("IDE");
+        primaryStage.setTitle("K.IDE");
         primaryStage.show();
     }
     public static void main(String[] args) {
