@@ -1,9 +1,7 @@
 package compilador.principal;
 
-import compilador.principal.Caller;
 import compilador.parser.CompiladorLexer;
 import compilador.parser.CompiladorParser;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -19,13 +17,16 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Controller implements Initializable {
     @FXML private TextArea txt_codigo;
     @FXML private Label lbl_output;
     public static Label static_lbl;
 
 
-    public void run(ActionEvent event)throws IOException {
+    public void run() {
         lbl_output.setText(null);
         String codigo = txt_codigo.getText();
         CharStream input = CharStreams.fromString(codigo);
@@ -37,10 +38,10 @@ public class Controller implements Initializable {
         visitas.visit(arbol);
     }
 
-    public void fromC(ActionEvent e){
+    public void fromC(){
         translateFromC(txt_codigo.getText());
     }
-    public void toC(ActionEvent e){
+    public void toC(){
         translateToC(MyVisitor.translation);
     }
     public void translateToC(List<String> in){
@@ -60,6 +61,16 @@ public class Controller implements Initializable {
     }
 
     public void translateFromC(String in){ //reemplazamos con expresiones regulares
+
+        Pattern pattern = Pattern.compile("for\\([.]+\\)");
+        Matcher matcher = pattern.matcher(in);
+        if (matcher.find()){
+            System.out.println("uno");
+            System.out.println(matcher.group(1));
+        }
+        String aux;
+
+        in = in.replaceAll("(i\\+\\+)","i = i+1");
         in = in.replaceAll("(#include <[a-zA-Z.]+>)", "");
         in = in.replaceAll("main", "principal");
         in = in.replaceAll(",", "");
@@ -69,14 +80,23 @@ public class Controller implements Initializable {
         in = in.replaceAll("printf", "console.print");
         in = in.replaceAll("(%.)", "");
 
+        if (matcher.find()){
+            System.out.println("dos");
+            aux = matcher.group(1).replaceAll(";","COMA");
+            System.out.println(aux);
+        }
+
+
+
+
         System.out.println(in);
         txt_codigo.setText(in);
     }
     @FXML
-    public void writeToTxt() throws IOException {
+    public void writeToTxt() {
         MyVisitor.jasmin.clear();
         MyVisitor.is_translating = true;
-        run(null); //Llenamos la lista de traduccion. CAMBIAR A METODO ADDJASMINVARIABLES
+        run(); //Llenamos la lista de traduccion.
         MyVisitor.is_translating = false;
         try{
             FileWriter myWriter = new FileWriter("Principal.j");
@@ -86,7 +106,7 @@ public class Controller implements Initializable {
             }
             myWriter.close();
 
-            ArrayList<String> commands = new ArrayList<String>();
+            ArrayList<String> commands = new ArrayList<>();
             commands.add("python");
             commands.add("Main.py");
             Caller caller = new Caller(commands);

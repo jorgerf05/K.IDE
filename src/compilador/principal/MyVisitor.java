@@ -6,19 +6,17 @@ import compilador.parser.CompiladorParser;
 import java.util.*;
 
 public class MyVisitor extends CompiladorBaseVisitor<Object> {
-    Map<String, Object> memtest = new HashMap<String, Object>();
 
     /*crear una lista de hashmaps. accedemos a ella mediante algo como
      * lista.get(nivel) -> un hashmap de todas las variables de ese nivel
      * */
-    private List<LinkedHashMap<String, Object>> mem = new ArrayList<LinkedHashMap<String, Object>>();
+    private final List<LinkedHashMap<String, Object>> mem = new ArrayList<>();
+    public static final List<String> translation = new ArrayList<>();
+    public static final List<String> jasmin = new ArrayList<>();
     int level = 0;
     boolean writing = true;
     boolean needsIf = false;
     public static boolean is_translating = false;
-
-    public static List<String> translation = new ArrayList<String>();
-    public static List<String> jasmin = new ArrayList<String>();
 
     @Override
     public Object visitCuerpo(CompiladorParser.CuerpoContext ctx) {
@@ -44,7 +42,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     }
     @Override
     public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
-        Object test = null;
         String out;
         if (ctx.STRING() != null) {//si hay un string literal
             out = ctx.STRING().toString();
@@ -57,7 +54,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
 
             //out = String.valueOf(this.visit(ctx.expr()));
             double out_real = (double)visit(ctx.expr());
-            int out_int = (int)out_real;
             out = String.valueOf(out_real);
             String variable = ctx.expr().getText();
 
@@ -128,19 +124,15 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             writeJasmin("ldc "+entero_jasmin+"\nistore "+mem.get(level).size()+"\n");
             mem.get(level).put(id, obj);
         } else {
-            if (obj != null) {
-                mem.get(level).replace(id, obj);
-            }
+            mem.get(level).replace(id, obj);
         }
-        translation.add(id + " = " + obj.toString() + ";");
+        translation.add(id + " = " + obj + ";");
         return null;
     }
     @Override
     public Object visitVariable(CompiladorParser.VariableContext ctx) {
 
         String id = ctx.ID().toString();
-        int i = 0;
-        boolean found = false;
 
         if (mem.get(level).containsKey(id)){
 
@@ -244,7 +236,10 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         boolean key = (boolean) visit(ctx.condicion()); //resolvemos la lógica de la condición
         needsIf = false; //desactivamos la creación del if
 
-        writeJasmin("if"+"\ngoto else\n"); //if_xxxxx -> if, else -> goto else
+        writeJasmin("""
+                if
+                goto else
+                """); //if_xxxxx -> if, else -> goto else
 
         if (is_translating){
             try {
@@ -280,7 +275,6 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             }
             changeLevel("down");
         }
-
         return null;
     }
     @Override
@@ -324,19 +318,16 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
     }
     void changeLevel(String str) {
         switch (str) {
-            case "up":
-                System.out.println("Subiendo nivel...");
+            case "up" -> {
                 level++; //subimos el nivel
                 LinkedHashMap<String, Object> tmp = new LinkedHashMap<>(mem.get(level - 1)); //hacemos una copia temporal del nivel abajo
                 mem.set(level, tmp);//copiamos el contenido de tmp al nivel actual
-                break;
-
-            case "down":
-                System.out.println("Bajando nivel...");
+            }
+            case "down" -> {
                 LinkedHashMap<String, Object> memtest = new LinkedHashMap<>();//Mapa vacío
                 mem.set(level, memtest); //Vaciamos el nivel
                 level--; //bajamos de nivel
-                break;
+            }
         }
     }
     void writeJasmin(String line){
@@ -345,65 +336,68 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         }
     }
     void findJasmin(String id){
-        System.out.println("Buscando variable... "+id);
-        List<String> keys = new ArrayList<>(mem.get(level).keySet());
+        if (is_translating){
+            System.out.println("Buscando variable... "+id);
+            List<String> keys = new ArrayList<>(mem.get(level).keySet());
 
-        System.out.println("-------VARIABLES EN MEMORIA-------");
-        int i = 0;
-        for (String str:keys
-             ) {
-            System.out.println(i + " -> "+str);
-            i++;
-
-        }
-        System.out.println("----------------------------------");
-
-        i = 0;
-        boolean found = false;
-        try {
-            do {
-                if (Objects.equals(keys.get(i), id)) { //si encontramos el nombre
-
-                    System.out.print("VARIABLE ENCONTRADA: ");
-                    System.out.println("pos -> "+i+" var -> "+keys.get(i));
-                    writeJasmin("\niload " + i+"\n"); //cargamos la variable i
-                    found = true;
-                }
+            System.out.println("-------VARIABLES EN MEMORIA-------");
+            int i = 0;
+            for (String str:keys
+            ) {
+                System.out.println(i + " -> "+str);
                 i++;
-            }while (!found);
-        }catch (Exception e){
-            System.out.println("No se encontró");
+
+            }
+            System.out.println("----------------------------------");
+
+            i = 0;
+            boolean found = false;
+            try {
+                do {
+                    if (Objects.equals(keys.get(i), id)) { //si encontramos el nombre
+
+                        System.out.print("VARIABLE ENCONTRADA: ");
+                        System.out.println("pos -> "+i+" var -> "+keys.get(i));
+                        writeJasmin("\niload " + i+"\n"); //cargamos la variable i
+                        found = true;
+                    }
+                    i++;
+                }while (!found);
+            }catch (Exception e){
+                System.out.println("No se encontró");
+            }
         }
     }
     Object loadJasmin(String id){
-        System.out.println("Buscando variable... "+id);
-        List<String> keys = new ArrayList<>(mem.get(level).keySet());
+        if (is_translating){
+            System.out.println("Buscando variable... "+id);
+            List<String> keys = new ArrayList<>(mem.get(level).keySet());
 
-        System.out.println("-------VARIABLES EN MEMORIA-------");
-        int i = 0;
-        for (String str:keys
-        ) {
-            System.out.println(i + " -> "+str);
-            i++;
-        }
-        System.out.println("----------------------------------");
-
-        i = 0;
-        boolean found = false;
-        try {
-            do {
-                if (Objects.equals(keys.get(i), id)) { //si encontramos el nombre
-
-                    System.out.print("VARIABLE ENCONTRADA: ");
-                    System.out.println("pos -> "+i+" var -> "+keys.get(i));
-                    found = true;
-                    return i; //cargamos la variable i
-
-                }
+            System.out.println("-------VARIABLES EN MEMORIA-------");
+            int i = 0;
+            for (String str:keys
+            ) {
+                System.out.println(i + " -> "+str);
                 i++;
-            }while (!found);
-        }catch (Exception e){
-            System.out.println("No se encontró");
+            }
+            System.out.println("----------------------------------");
+
+            i = 0;
+            try {
+                do {
+                    if (Objects.equals(keys.get(i), id)) { //si encontramos el nombre
+
+                        System.out.print("VARIABLE ENCONTRADA: ");
+                        System.out.println("pos -> "+i+" var -> "+keys.get(i));
+                        return i; //cargamos la variable i
+
+                    }
+                    i++;
+                }while (true);
+            }catch (Exception e){
+                System.out.println("No se encontró");
+            }
+            return null;
         }
         return null;
     }

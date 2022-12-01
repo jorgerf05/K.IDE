@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Caller {
-    private List<String> commands = new ArrayList<String>();
+    private List<String> commands = new ArrayList<>();
     public Caller(List <String> commands) {
         this.commands = commands;
     }
