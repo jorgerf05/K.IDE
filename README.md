@@ -445,3 +445,58 @@ El método findJasmin se encarga de encontrar la posición en la pila de la JVM 
     }
 
 ```
+
+### Compilación y ejecución
+El método principal para realizar el proceso de compilación y ejecución es writeToTxt. Este método es invocado al hacer clic en el botón "Compilar" dentro de K.IDE. Escribe un archivo de texto con el código de Jasmin y posteriormente invoca un subproceso de Python para la compilación desde el archivo de texto y ejecución. 
+```java
+    @FXML
+    public void writeToTxt() {
+        MyVisitor.jasmin.clear();
+        MyVisitor.is_translating = true;
+        run(); //Llenamos la lista de traduccion.
+        MyVisitor.is_translating = false;
+        try{
+            FileWriter myWriter = new FileWriter("Principal.j");
+            for (String str: MyVisitor.jasmin
+            ) {
+                myWriter.write(str);
+            }
+            myWriter.close();
+
+            ArrayList<String> commands = new ArrayList<>();
+            commands.add("python");
+            commands.add("Main.py");
+            Caller caller = new Caller(commands);
+            caller.execute();
+        }catch (IOException ex){
+            System.out.println("error "+ex);
+        }
+
+
+    }
+```
+
+El objeto Caller es sumamente sencillo. Recibe una lista de argumentos y los ejecuta como un subproceso. Es algo limitado en cuanto a manejo de tiempos, por lo que lo utilizamos de puente a un script Python
+```java
+public class Caller {
+    private List<String> commands = new ArrayList<>();
+    public Caller(List <String> commands) {
+        this.commands = commands;
+    }
+    public void execute() throws IOException {
+        ProcessBuilder process = new ProcessBuilder(this.commands);
+        process.directory(new File("/home/jorge/IdeaProjects/Compilador/"));
+        process.start();
+    }
+}
+```
+Y el script de Python (necesario para esperar a que se finalicen los procesos)
+```python
+import os
+
+os.system("java -jar /usr/local/lib/jasmin.jar Principal.j")
+os.system("java principal > out.txt")
+os.system("kitty nvim out.txt")
+```
+
+Y esto mostrará una ventana con la salida de nuestro ejecutable.
