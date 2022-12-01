@@ -46,21 +46,9 @@
 <VBox prefHeight="610.0" prefWidth="1042.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="compilador.principal.Controller">
   <MenuBar VBox.vgrow="NEVER">
     <Menu mnemonicParsing="false" text="File">
-      <MenuItem mnemonicParsing="false" text="New" />
-      <MenuItem mnemonicParsing="false" text="Open…" />
+      <MenuItem mnemonicParsing="false" onAction="#writeToTxt" text="Compilar" />
       <MenuItem fx:id="btn_from_c" mnemonicParsing="false" onAction="#fromC" text="Traducir desde C" />
       <MenuItem mnemonicParsing="false" onAction="#toC" text="Traducir a C" />
-      <MenuItem mnemonicParsing="false" onAction="#writeToTxt" text="Traducir a jasmin" />
-      <Menu mnemonicParsing="false" text="Open Recent" />
-      <SeparatorMenuItem mnemonicParsing="false" />
-      <MenuItem mnemonicParsing="false" text="Close" />
-      <MenuItem mnemonicParsing="false" text="Save" />
-      <MenuItem mnemonicParsing="false" text="Save As…" />
-      <MenuItem mnemonicParsing="false" text="Revert" />
-      <SeparatorMenuItem mnemonicParsing="false" />
-      <MenuItem mnemonicParsing="false" text="Preferences…" />
-      <SeparatorMenuItem mnemonicParsing="false" />
-      <MenuItem mnemonicParsing="false" text="Quit" />
     </Menu>
     <Menu mnemonicParsing="false" text="Edit">
       <MenuItem mnemonicParsing="false" text="Undo" />
@@ -86,6 +74,6 @@
     </Label>
     <TextArea fx:id="txt_codigo" layoutX="45.0" layoutY="40.0" prefHeight="408.0" prefWidth="960.0" text="void principal(){}" />
     <Button fx:id="btn_run" layoutX="901.0" layoutY="486.0" mnemonicParsing="false" onAction="#run" prefHeight="40.0" prefWidth="103.0" text="Run" />
-    <Label fx:id="lbl_output" layoutX="45.0" layoutY="469.0" prefHeight="73.0" prefWidth="823.0" style="-fx-background-color: #E8E8E8;" text="Output" />
+      <TextArea fx:id="txt_salida" editable="false" layoutX="45.0" layoutY="472.0" prefHeight="86.0" prefWidth="840.0" promptText="Output" />
   </AnchorPane>
 </VBox>

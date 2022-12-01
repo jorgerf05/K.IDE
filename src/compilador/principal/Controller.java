@@ -4,7 +4,6 @@ import compilador.parser.CompiladorLexer;
 import compilador.parser.CompiladorParser;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -22,12 +21,15 @@ import java.util.regex.Pattern;
 
 public class Controller implements Initializable {
     @FXML private TextArea txt_codigo;
-    @FXML private Label lbl_output;
-    public static Label static_lbl;
+    //@FXML private Label lbl_output;
+    //public static Label static_lbl;
+
+    @FXML private TextArea txt_salida;
+    public static TextArea static_salida;
 
 
     public void run() {
-        lbl_output.setText(null);
+        txt_salida.setText("");
         String codigo = txt_codigo.getText();
         CharStream input = CharStreams.fromString(codigo);
         CompiladorLexer lexico = new CompiladorLexer(input);
@@ -119,6 +121,7 @@ public class Controller implements Initializable {
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        static_lbl = lbl_output;
+        static_salida = txt_salida;
+        //static_lbl = lbl_output;
     }
 }

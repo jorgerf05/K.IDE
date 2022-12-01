@@ -3,6 +3,7 @@ package compilador.principal;
 import compilador.parser.CompiladorBaseVisitor;
 import compilador.parser.CompiladorParser;
 
+import javax.naming.ldap.Control;
 import java.util.*;
 
 public class MyVisitor extends CompiladorBaseVisitor<Object> {
@@ -46,7 +47,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
         if (ctx.STRING() != null) {//si hay un string literal
             out = ctx.STRING().toString();
             System.out.println(out);
-            Controller.static_lbl.setText(out);
+            //Controller.static_lbl.setText(out);
+            Controller.static_salida.appendText(out+"\n");
             writeJasmin("\ngetstatic java/lang/System/out Ljava/io/PrintStream;");
             writeJasmin("\nldc "+out);
             writeJasmin("\ninvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
@@ -58,7 +60,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             String variable = ctx.expr().getText();
 
             System.out.println(out);
-            Controller.static_lbl.setText(out);
+            //Controller.static_lbl.setText(out);
+            Controller.static_salida.appendText(out+"\n");
 
             translation.add("printf(\"%i\"," + variable + ");");
             writeJasmin("\ngetstatic java/lang/System/out Ljava/io/PrintStream;\n");
@@ -139,7 +142,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
             //return (mem.get(id));
             return mem.get(level).get(id);
         } else {
-            Controller.static_lbl.setText("La variable " + id + " no existe!");
+            //Controller.static_lbl.setText("La variable " + id + " no existe!");
+            Controller.static_salida.appendText("La variable " + id + " no existe!");
             System.out.println("La variable " +id + " no existe!!");
             return null; //de mientras
         }
@@ -162,7 +166,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                 translation.add(ctx.TYPE().toString() + " " + id + ";");
             }
         } else {
-            Controller.static_lbl.setText("La variable " + id + " ya existe!");
+            //Controller.static_lbl.setText("La variable " + id + " ya existe!");
+            Controller.static_salida.appendText("La variable " + id + " ya existe!");
             System.out.println("La variable " + id + " ya existe!");
         }
         return visitChildren(ctx);
@@ -188,7 +193,8 @@ public class MyVisitor extends CompiladorBaseVisitor<Object> {
                     }
                 }
                 default -> {
-                    Controller.static_lbl.setText("Operador inválido");
+                    //Controller.static_lbl.setText("Operador lógico inválido");
+                    Controller.static_salida.appendText("Operador lógico inválido");
                     System.out.println("Operador logico no valido");
                 }
             }
