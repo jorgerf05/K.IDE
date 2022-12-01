@@ -2,6 +2,8 @@
  Entorno de desarrollo que incluye compilador y transpilador para Lenguajes y Autómatas II. Escrito en Java, ANTLR4, Python y un poco de CSS. 
 Inspirado en el estilo de Python y ciertas referencias a JavaScript
 
+![plot](./assets/K.IDE.png)
+
 ### Dependencias
 - Python 3.11
 - Java 19
