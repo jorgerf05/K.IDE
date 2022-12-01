@@ -1,5 +1,5 @@
-# Kiwi-lang
-Lenguaje, compilador y transpilador para Lenguajes y Autómatas II. Escrito en Java, ANTLR4, Python y un poco de CSS. 
+# Kiwi / K.IDE
+ Entorno de desarrollo que incluye compilador y transpilador para Lenguajes y Autómatas II. Escrito en Java, ANTLR4, Python y un poco de CSS. 
 Inspirado en el estilo de Python y ciertas referencias a JavaScript
 
 ### Dependencias
@@ -12,7 +12,7 @@ Inspirado en el estilo de Python y ciertas referencias a JavaScript
 
 ### Instalación
 
-```
+```bash
 git clone https://github.com/jorgerf05/Compilador.git
 cd Compilador
 idea .
@@ -365,6 +365,81 @@ void changeLevel(String str) {
                 LinkedHashMap<String, Object> memtest = new LinkedHashMap<>();//Mapa vacío
                 mem.set(level, memtest); //Vaciamos el nivel
                 level--; //bajamos de nivel
+            }
+        }
+    }
+
+```
+
+### Construcción y compilación de codígo Jasmin / JVM
+La construcción de código Jasmin se realiza de la misma manera que se traduce de Kiwi a C, con la adición de una capa de control de variables que permita
+al analizador semántico generar código que sea capaz de referenciar variables con su dirección de memoria. Es por esto que utilizamos LinkedHashMap en lugar de un HashMap estándar (recordemos que este último no asegura la integridad del orden los elementos dentro de él.)
+
+Tomemos el ejemplo de la traducción de una sentencia print. Observemos la llamada al método findJasmin. Este método relaciona nombres de variables con su posición en la pila de la JVM.
+```java
+@Override
+    public Object visitImpresion(CompiladorParser.ImpresionContext ctx) {
+        String out;
+        if (ctx.STRING() != null) {//si hay un string literal
+            out = ctx.STRING().toString();
+            System.out.println(out);
+            Controller.static_salida.appendText(out+"\n");
+            writeJasmin("\ngetstatic java/lang/System/out Ljava/io/PrintStream;");
+            writeJasmin("\nldc "+out);
+            writeJasmin("\ninvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+        } else { //si hay variable
+
+            double out_real = (double)visit(ctx.expr());
+            out = String.valueOf(out_real);
+            String variable = ctx.expr().getText();
+
+            System.out.println(out);
+            Controller.static_salida.appendText(out+"\n");
+
+            translation.add("printf(\"%i\"," + variable + ");");
+            writeJasmin("\ngetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+            findJasmin(ctx.expr().getText());
+            writeJasmin("\ninvokevirtual java/io/PrintStream/println(I)V\n");
+        }
+
+        return null;
+
+    }
+
+```
+
+El método findJasmin se encarga de encontrar la posición en la pila de la JVM de una variable en base a su nombre dentro de Kiwi. Recibe este dato como una cadena. Además, muestra en consola datos relevantes para el debugging.
+```java
+ void findJasmin(String id){
+        if (is_translating){
+            System.out.println("Buscando variable... "+id);
+            List<String> keys = new ArrayList<>(mem.get(level).keySet());
+
+            System.out.println("-------VARIABLES EN MEMORIA-------");
+            int i = 0;
+            for (String str:keys
+            ) {
+                System.out.println(i + " -> "+str);
+                i++;
+
+            }
+            System.out.println("----------------------------------");
+
+            i = 0;
+            boolean found = false;
+            try {
+                do {
+                    if (Objects.equals(keys.get(i), id)) { //si encontramos el nombre
+
+                        System.out.print("VARIABLE ENCONTRADA: ");
+                        System.out.println("pos -> "+i+" var -> "+keys.get(i));
+                        writeJasmin("\niload " + i+"\n"); //cargamos la variable i
+                        found = true;
+                    }
+                    i++;
+                }while (!found);
+            }catch (Exception e){
+                System.out.println("No se encontró");
             }
         }
     }
